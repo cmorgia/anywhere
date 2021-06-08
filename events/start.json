@@ -1,0 +1,69 @@
+{
+    "version": "0",
+    "id": "5f1ab9cf-9382-49ae-909f-d7cb4373d80a",
+    "detail-type": "ECS Task State Change",
+    "source": "aws.ecs",
+    "account": "833413244865",
+    "time": "2021-06-04T13:33:23Z",
+    "region": "eu-central-1",
+    "resources": [
+        "arn:aws:ecs:eu-central-1:833413244865:task/TestCluster/6e7cdcfa388e4268a9b54d60a0fb4f8c"
+    ],
+    "detail": {
+        "attachments": [],
+        "clusterArn": "arn:aws:ecs:eu-central-1:833413244865:cluster/TestCluster",
+        "connectivity": "CONNECTED",
+        "connectivityAt": "2021-06-04T13:33:12.575Z",
+        "containerInstanceArn": "arn:aws:ecs:eu-central-1:833413244865:container-instance/TestCluster/4f73836bcb024a779c0a9fe11be4547a",
+        "containers": [
+            {
+                "containerArn": "arn:aws:ecs:eu-central-1:833413244865:container/TestCluster/6e7cdcfa388e4268a9b54d60a0fb4f8c/f9335537-95aa-42a6-b63d-ca13d9fd6143",
+                "lastStatus": "RUNNING",
+                "name": "nginx",
+                "image": "833413244865.dkr.ecr.eu-central-1.amazonaws.com/mynginx:latest",
+                "imageDigest": "sha256:88cc3e73c08c48e189350c7455f4ebe3337cf26864d215cdbaf373e275008d33",
+                "runtimeId": "76eaac3583ac8e64c2091de7cb6cd72875dd245ba21e90ef88ff7557f0e8c91f",
+                "networkBindings": [
+                    {
+                        "bindIP": "0.0.0.0",
+                        "containerPort": 80,
+                        "hostPort": 49153,
+                        "protocol": "tcp"
+                    },
+                    {
+                        "bindIP": "::",
+                        "containerPort": 80,
+                        "hostPort": 49153,
+                        "protocol": "tcp"
+                    }
+                ],
+                "taskArn": "arn:aws:ecs:eu-central-1:833413244865:task/TestCluster/6e7cdcfa388e4268a9b54d60a0fb4f8c",
+                "networkInterfaces": [],
+                "cpu": "0"
+            }
+        ],
+        "cpu": "1024",
+        "createdAt": "2021-06-04T13:33:12.575Z",
+        "desiredStatus": "RUNNING",
+        "enableExecuteCommand": false,
+        "group": "service:nginx",
+        "launchType": "EXTERNAL",
+        "lastStatus": "RUNNING",
+        "memory": "1024",
+        "overrides": {
+            "containerOverrides": [
+                {
+                    "name": "nginx"
+                }
+            ]
+        },
+        "pullStartedAt": "2021-06-04T13:33:14.887Z",
+        "pullStoppedAt": "2021-06-04T13:33:22.78Z",
+        "startedAt": "2021-06-04T13:33:23.165Z",
+        "startedBy": "ecs-svc/6889656614147720721",
+        "taskArn": "arn:aws:ecs:eu-central-1:833413244865:task/TestCluster/6e7cdcfa388e4268a9b54d60a0fb4f8c",
+        "taskDefinitionArn": "arn:aws:ecs:eu-central-1:833413244865:task-definition/TestECSAnywhere-TestTask-OolQCAzYeOP0:1",
+        "updatedAt": "2021-06-04T13:33:23.165Z",
+        "version": 2
+    }
+}

@@ -1,0 +1,412 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ECS Anywhere automatic registration for load balancing
+
+Globals:
+  Function:
+    Timeout: 10
+
+Parameters:
+  VPCCidrBlock:
+    Type: String
+    Default: 10.12.14.0/23
+  ClientCidrBlock:
+    Type: String
+    Default: 10.15.16.0/22
+  NamePrefix:
+    Type: String
+    Default: anywhere
+  ServerCertificateARN:
+    Type: String
+    Default: arn:aws:acm:eu-central-1::certificate/a135a0ea-5444-47b0-bef4-30775aaf7b13
+  ClientCertificateARN:
+    Type: String
+    Default: arn:aws:acm:eu-central-1::certificate/4b256159-cb48-4915-b8b9-35a8eb159116
+  
+
+Resources:
+  TestCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: TestCluster
+
+  TestVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref TestVPC
+      CidrBlock:
+        !Select [ 0, !Cidr [ !Ref VPCCidrBlock, 4, 7 ] ]
+      AvailabilityZone: !Select 
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub "${NamePrefix}-public-subnet1"
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref TestVPC
+      CidrBlock:
+        !Select [ 1, !Cidr [ !Ref VPCCidrBlock, 4, 7 ] ]
+      AvailabilityZone: !Select 
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub "${NamePrefix}-public-subnet2"
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref TestVPC
+      CidrBlock:
+        !Select [ 2, !Cidr [ !Ref VPCCidrBlock, 4, 7 ] ]
+      AvailabilityZone: !Select 
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub "${NamePrefix}-private-subnet1"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref TestVPC
+      CidrBlock:
+        !Select [ 3, !Cidr [ !Ref VPCCidrBlock, 4, 7 ] ]
+      AvailabilityZone: !Select 
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      Tags:
+        -
+          Key: "Name"
+          Value: !Sub "${NamePrefix}-private-subnet2"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: TestVPC
+  
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref TestVPC
+      InternetGatewayId: !Ref InternetGateway
+  
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TestVPC
+
+  PublicRoute1: 
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway 
+  
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+  
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TestVPC
+  
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+  
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable  
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TestVPC
+      GroupName: "AlbSecurityGroup"
+      GroupDescription: "Security group for Test Anywhere"
+      SecurityGroupIngress:
+        - FromPort: 80
+          ToPort: 80
+          IpProtocol: "-1"
+          CidrIp: 81.28.194.230/32
+
+  TestALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: anywhere-alb
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPath: /
+      HealthCheckPort: "80"
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200,302'
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref TestVPC
+      TargetType: ip
+
+# WS App server ALB listener
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: "forward"
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref TestALB
+      Port: 80
+      Protocol: "HTTP"
+
+# WS App server ALB listener rule
+  AppListenerRule1:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties: 
+      Actions: 
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref TargetGroup
+      Conditions: 
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - "/"
+              - "/*"
+      ListenerArn: !Ref LoadBalancerListener
+      Priority: 1
+
+  TaskAPIRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: 'test-ecs-taskapi-role'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'test-ecs-taskexecution-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+
+  TestTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      RequiresCompatibilities:
+        - EXTERNAL
+      Cpu: "1024"
+      Memory: "1024"
+      TaskRoleArn: !GetAtt TaskAPIRole.Arn
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Image: !Sub ${AWS::AccountId}.dkr.ecr.eu-central-1.amazonaws.com/mynginx:latest
+          Name: nginx
+          PortMappings:
+            - ContainerPort: 80
+          
+  TestService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: nginx
+      Cluster: !Ref TestCluster
+      DesiredCount: 0
+      LaunchType: EXTERNAL
+      TaskDefinition: !Ref TestTask
+      PropagateTags: SERVICE
+      Tags:
+        - Key: targetGroup
+          Value: !Ref TargetGroup
+
+  TaskFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: task_function
+      Handler: task/statechange.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          targetGroup: !Ref TargetGroup
+      Events:
+        ChangedTask:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.ecs
+              detail-type:
+                - ECS Task State Change
+              detail:
+                desiredStatus:
+                  - STOPPED
+                lastStatus:
+                  - STOPPED
+                clusterArn:
+                  - !GetAtt TestCluster.Arn
+        StartTask:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.ecs
+              detail-type:
+                - ECS Task State Change
+              detail:
+                desiredStatus:
+                  - RUNNING
+                lastStatus:
+                  - RUNNING
+                clusterArn:
+                  - !GetAtt TestCluster.Arn
+
+  ClientVPNLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: "/clientVpn"
+      
+  ClientVPNLogStream:
+    Type: AWS::Logs::LogStream
+    Properties: 
+      LogGroupName: !Ref ClientVPNLogGroup
+      LogStreamName: "clientVpnStream"
+
+  ClientVPNEndpoint:
+    Type: AWS::EC2::ClientVpnEndpoint
+    Properties:
+      Description: "Client VPN endpoint"
+      SplitTunnel: true
+      VpcId: !Ref TestVPC
+      ServerCertificateArn: !Ref ServerCertificateARN
+      ClientCidrBlock:
+        Ref: ClientCidrBlock
+      AuthenticationOptions:
+        - Type: "certificate-authentication"
+          MutualAuthentication: {
+             ClientRootCertificateChainArn: !Ref ClientCertificateARN
+          }
+      ConnectionLogOptions:
+        Enabled: true
+        CloudwatchLogGroup: !Ref ClientVPNLogGroup
+        CloudwatchLogStream: !Ref ClientVPNLogStream
+
+  ClientVPNEndpointAuthRule:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      ClientVpnEndpointId: 
+        Ref: ClientVPNEndpoint
+      AuthorizeAllGroups: true
+      TargetNetworkCidr:
+        Ref: VPCCidrBlock
+      Description: "ClientVPNEndpointAuthRule"
+
+  Subnet1NetworkAssociation:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId: 
+        Ref: ClientVPNEndpoint
+      SubnetId: 
+        Ref: PrivateSubnet1
+
+  Subnet2NetworkAssociation:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId: 
+        Ref: ClientVPNEndpoint
+      SubnetId: 
+        Ref: PrivateSubnet2
+
+  ClientVPNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref TestVPC
+      GroupName: "ClientVPNSecurityGroup"
+      GroupDescription: "Security group controlling the inbound traffic to the Client VPN"
+      SecurityGroupIngress:
+        - FromPort: 0
+          ToPort: 0
+          IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  TaskFunction:
+    Description: "Task Lambda Function ARN"
+    Value: !GetAtt TaskFunction.Arn
+  TaskFunctionIamRole:
+    Description: "Implicit IAM Role created for Task function"
+    Value: !GetAtt TaskFunctionRole.Arn
+
+  EndpointID:
+    Description: "Client Endpoint ID"
+    Value: !Ref ClientVPNEndpoint
+
+  Endpoint:
+    Description: "Client endpoint DNS name"
+    Value: !Sub "${ClientVPNEndpoint}.prod.clientvpn.${AWS::Region}.amazonaws.com"
