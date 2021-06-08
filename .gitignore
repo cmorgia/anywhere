@@ -269,4 +269,8 @@ node_modules.old
 cdk.out
 compare
 .aws-sam
-pki
+pki.me
+params.sh
+pki/*.crt
+pki/*.key
+config.conf

@@ -33,3 +33,17 @@ In particular, the script performs the following steps:
 - executes a script in the VM to register it to SSM and the ECS cluster as a container instance
 - connects the instance to the client VPN endpoint to ensure connectivity
 
+## Prerequisite
+
+The solution is based on mutual authentication for the client VPN service so appropriate certificates need to be created.
+The script `pki/ca.sh` is responsible of:
+
+- fetching the easyRSA package from GitHub
+- performing all the necessary steps to create the assets (some steps are interactive)
+- upload the certificates to AWS Certificate Manager
+- create a parameters script with the certificates ARNs (`params.sh`), which is then sources by `full.sh`
+
+This script should only be executed the first time you create the certificates.
+
+The solution is also configured to establish an OpenVPN connection to the VPC for container traffic and health check.
+In order to configure this subsystem, the script `vpn/build.sh` must be executed and it is responsible for dynamically (re)create the appropriate VPN client configuration.

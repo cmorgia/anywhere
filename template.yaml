@@ -172,7 +172,6 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckPath: /
-      HealthCheckPort: "80"
       HealthCheckProtocol: HTTP
       HealthCheckIntervalSeconds: 30
       HealthCheckTimeoutSeconds: 5
@@ -293,6 +292,10 @@ Resources:
       Environment:
         Variables:
           targetGroup: !Ref TargetGroup
+      Policies:
+        - AmazonECS_FullAccess
+        - AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
       Events:
         ChangedTask:
           Type: CloudWatchEvent
