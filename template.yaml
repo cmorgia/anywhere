@@ -14,18 +14,34 @@ Parameters:
   ClientCidrBlock:
     Type: String
     Default: 10.15.16.0/22
+  OnpremCidrBlock:
+    Type: String
+    Default: 10.211.55.0/24
   NamePrefix:
     Type: String
     Default: anywhere
   ServerCertificateARN:
     Type: String
-    Default: arn:aws:acm:eu-central-1::certificate/a135a0ea-5444-47b0-bef4-30775aaf7b13
   ClientCertificateARN:
     Type: String
-    Default: arn:aws:acm:eu-central-1::certificate/4b256159-cb48-4915-b8b9-35a8eb159116
-  
 
 Resources:
+  ECSExternalInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'ecsExternalInstanceRole'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ssm.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+
   TestCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -265,7 +281,7 @@ Resources:
       TaskRoleArn: !GetAtt TaskAPIRole.Arn
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
       ContainerDefinitions:
-        - Image: !Sub ${AWS::AccountId}.dkr.ecr.eu-central-1.amazonaws.com/mynginx:latest
+        - Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/mynginx:latest
           Name: nginx
           PortMappings:
             - ContainerPort: 80
@@ -376,6 +392,14 @@ Resources:
       SubnetId: 
         Ref: PrivateSubnet1
 
+  Subnet1NetworkRoute:
+    Type: AWS::EC2::ClientVpnRoute
+    DependsOn: [ Subnet1NetworkAssociation ]
+    Properties: 
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      DestinationCidrBlock: !Ref OnpremCidrBlock
+      TargetVpcSubnetId: !Ref PrivateSubnet1
+
   Subnet2NetworkAssociation:
     Type: AWS::EC2::ClientVpnTargetNetworkAssociation
     Properties:
@@ -383,6 +407,14 @@ Resources:
         Ref: ClientVPNEndpoint
       SubnetId: 
         Ref: PrivateSubnet2
+
+  Subnet2NetworkRoute:
+    Type: AWS::EC2::ClientVpnRoute
+    DependsOn: [ Subnet2NetworkAssociation ]
+    Properties: 
+      ClientVpnEndpointId: !Ref ClientVPNEndpoint
+      DestinationCidrBlock: !Ref OnpremCidrBlock
+      TargetVpcSubnetId: !Ref PrivateSubnet2
 
   ClientVPNSecurityGroup:
     Type: AWS::EC2::SecurityGroup
