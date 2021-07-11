@@ -1,0 +1,1014 @@
+Parameters:
+  clientCertificateArn:
+    Type: String
+    Default: arn:aws:acm:eu-west-1:693196418513:certificate/6f2a2ccb-27b3-41b5-b43f-e1015345e042
+  serverCertificateArn:
+    Type: String
+    Default: arn:aws:acm:eu-west-1:693196418513:certificate/72f82f5f-a1b2-4609-b769-e4055fc77027
+  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695S3BucketADF23332:
+    Type: String
+    Description: S3 bucket for asset "fa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695"
+  AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695S3VersionKey568B6D70:
+    Type: String
+    Description: S3 key for asset version "fa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695"
+  AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695ArtifactHashC64A4969:
+    Type: String
+    Description: Artifact hash for asset "fa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695"
+Resources:
+  testVpcCB3A84F3:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.12.14.0/23
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/Resource
+  testVpcPublicSubnet1Subnet03209D96:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.12.14.0/25
+      VpcId:
+        Ref: testVpcCB3A84F3
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: AnywhereStack/testVpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet1/Subnet
+  testVpcPublicSubnet1RouteTable937500B7:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: testVpcCB3A84F3
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet1/RouteTable
+  testVpcPublicSubnet1RouteTableAssociationB0E8B01F:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: testVpcPublicSubnet1RouteTable937500B7
+      SubnetId:
+        Ref: testVpcPublicSubnet1Subnet03209D96
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet1/RouteTableAssociation
+  testVpcPublicSubnet1DefaultRoute39318EB1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: testVpcPublicSubnet1RouteTable937500B7
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: testVpcIGW8765943D
+    DependsOn:
+      - testVpcVPCGWD6E219A3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet1/DefaultRoute
+  testVpcPublicSubnet2SubnetAF6DE3CD:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.12.14.128/25
+      VpcId:
+        Ref: testVpcCB3A84F3
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: AnywhereStack/testVpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet2/Subnet
+  testVpcPublicSubnet2RouteTableFB8FD3DC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: testVpcCB3A84F3
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet2/RouteTable
+  testVpcPublicSubnet2RouteTableAssociationB8F9BBA9:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: testVpcPublicSubnet2RouteTableFB8FD3DC
+      SubnetId:
+        Ref: testVpcPublicSubnet2SubnetAF6DE3CD
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet2/RouteTableAssociation
+  testVpcPublicSubnet2DefaultRouteCF7F813D:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: testVpcPublicSubnet2RouteTableFB8FD3DC
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: testVpcIGW8765943D
+    DependsOn:
+      - testVpcVPCGWD6E219A3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/PublicSubnet2/DefaultRoute
+  testVpcIsolatedSubnet1SubnetE8A3F2FE:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.12.15.0/25
+      VpcId:
+        Ref: testVpcCB3A84F3
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Isolated
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+        - Key: Name
+          Value: AnywhereStack/testVpc/IsolatedSubnet1
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet1/Subnet
+  testVpcIsolatedSubnet1RouteTable7EAABDFC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: testVpcCB3A84F3
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc/IsolatedSubnet1
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet1/RouteTable
+  testVpcIsolatedSubnet1RouteTableAssociation245D6C4B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: testVpcIsolatedSubnet1RouteTable7EAABDFC
+      SubnetId:
+        Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet1/RouteTableAssociation
+  testVpcIsolatedSubnet2Subnet9899D0DE:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.12.15.128/25
+      VpcId:
+        Ref: testVpcCB3A84F3
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Isolated
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+        - Key: Name
+          Value: AnywhereStack/testVpc/IsolatedSubnet2
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet2/Subnet
+  testVpcIsolatedSubnet2RouteTable64079157:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: testVpcCB3A84F3
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc/IsolatedSubnet2
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet2/RouteTable
+  testVpcIsolatedSubnet2RouteTableAssociationC69E3590:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: testVpcIsolatedSubnet2RouteTable64079157
+      SubnetId:
+        Ref: testVpcIsolatedSubnet2Subnet9899D0DE
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IsolatedSubnet2/RouteTableAssociation
+  testVpcIGW8765943D:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/IGW
+  testVpcVPCGWD6E219A3:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: testVpcCB3A84F3
+      InternetGatewayId:
+        Ref: testVpcIGW8765943D
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/VPCGW
+  testVpcssmEndpointSecurityGroup65FB1768:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AnywhereStack/testVpc/ssmEndpoint/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp:
+            Fn::GetAtt:
+              - testVpcCB3A84F3
+              - CidrBlock
+          Description:
+            Fn::Join:
+              - ""
+              - - "from "
+                - Fn::GetAtt:
+                    - testVpcCB3A84F3
+                    - CidrBlock
+                - :443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ssmEndpoint/SecurityGroup/Resource
+  testVpcssmEndpoint27A1D111:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName:
+        Fn::Join:
+          - ""
+          - - com.amazonaws.
+            - Ref: AWS::Region
+            - .ssm
+      VpcId:
+        Ref: testVpcCB3A84F3
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - testVpcssmEndpointSecurityGroup65FB1768
+            - GroupId
+      SubnetIds:
+        - Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+        - Ref: testVpcIsolatedSubnet2Subnet9899D0DE
+      VpcEndpointType: Interface
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ssmEndpoint/Resource
+  testVpcssmMessagesEndpointSecurityGroupD7E0D7E2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AnywhereStack/testVpc/ssmMessagesEndpoint/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp:
+            Fn::GetAtt:
+              - testVpcCB3A84F3
+              - CidrBlock
+          Description:
+            Fn::Join:
+              - ""
+              - - "from "
+                - Fn::GetAtt:
+                    - testVpcCB3A84F3
+                    - CidrBlock
+                - :443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ssmMessagesEndpoint/SecurityGroup/Resource
+  testVpcssmMessagesEndpoint07F09187:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName:
+        Fn::Join:
+          - ""
+          - - com.amazonaws.
+            - Ref: AWS::Region
+            - .ssmmessages
+      VpcId:
+        Ref: testVpcCB3A84F3
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - testVpcssmMessagesEndpointSecurityGroupD7E0D7E2
+            - GroupId
+      SubnetIds:
+        - Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+        - Ref: testVpcIsolatedSubnet2Subnet9899D0DE
+      VpcEndpointType: Interface
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ssmMessagesEndpoint/Resource
+  testVpcec2MessagesEndpointSecurityGroupA48CC281:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AnywhereStack/testVpc/ec2MessagesEndpoint/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp:
+            Fn::GetAtt:
+              - testVpcCB3A84F3
+              - CidrBlock
+          Description:
+            Fn::Join:
+              - ""
+              - - "from "
+                - Fn::GetAtt:
+                    - testVpcCB3A84F3
+                    - CidrBlock
+                - :443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ec2MessagesEndpoint/SecurityGroup/Resource
+  testVpcec2MessagesEndpoint6CCCE4ED:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName:
+        Fn::Join:
+          - ""
+          - - com.amazonaws.
+            - Ref: AWS::Region
+            - .ec2messages
+      VpcId:
+        Ref: testVpcCB3A84F3
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - testVpcec2MessagesEndpointSecurityGroupA48CC281
+            - GroupId
+      SubnetIds:
+        - Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+        - Ref: testVpcIsolatedSubnet2Subnet9899D0DE
+      VpcEndpointType: Interface
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/ec2MessagesEndpoint/Resource
+  testVpcclientVpnLogGroup631C7982:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 731
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/LogGroup/Resource
+  testVpcclientVpnSecurityGroupD110B733:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AnywhereStack/testVpc/clientVpn/SecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: AnywhereStack/testVpc
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/SecurityGroup/Resource
+  testVpcclientVpnE567D6E8:
+    Type: AWS::EC2::ClientVpnEndpoint
+    Properties:
+      AuthenticationOptions:
+        - MutualAuthentication:
+            ClientRootCertificateChainArn:
+              Ref: clientCertificateArn
+          Type: certificate-authentication
+      ClientCidrBlock: 10.15.16.0/22
+      ConnectionLogOptions:
+        CloudwatchLogGroup:
+          Ref: testVpcclientVpnLogGroup631C7982
+        Enabled: true
+      ServerCertificateArn:
+        Ref: serverCertificateArn
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - testVpcclientVpnSecurityGroupD110B733
+            - GroupId
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/Resource
+  testVpcclientVpnAssociation009BA4864:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId:
+        Ref: testVpcclientVpnE567D6E8
+      SubnetId:
+        Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/Association0
+  testVpcclientVpnAssociation1E9C0C4FC:
+    Type: AWS::EC2::ClientVpnTargetNetworkAssociation
+    Properties:
+      ClientVpnEndpointId:
+        Ref: testVpcclientVpnE567D6E8
+      SubnetId:
+        Ref: testVpcIsolatedSubnet2Subnet9899D0DE
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/Association1
+  testVpcclientVpnAuthorizeAllB27B688F:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      ClientVpnEndpointId:
+        Ref: testVpcclientVpnE567D6E8
+      TargetNetworkCidr:
+        Fn::GetAtt:
+          - testVpcCB3A84F3
+          - CidrBlock
+      AuthorizeAllGroups: true
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/AuthorizeAll/Resource
+  testVpcclientVpnonpremAuthRule76FD8888:
+    Type: AWS::EC2::ClientVpnAuthorizationRule
+    Properties:
+      ClientVpnEndpointId:
+        Ref: testVpcclientVpnE567D6E8
+      TargetNetworkCidr: 10.211.55.0/24
+      AuthorizeAllGroups: true
+    Metadata:
+      aws:cdk:path: AnywhereStack/testVpc/clientVpn/onpremAuthRule/Resource
+  bastionInstanceSecurityGroupDB2849E6:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AnywhereStack/bastion/Resource/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      Tags:
+        - Key: Name
+          Value: BastionHost
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/bastion/Resource/InstanceSecurityGroup/Resource
+  bastionInstanceRole5FE40889:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - ec2.
+                    - Ref: AWS::URLSuffix
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: BastionHost
+    Metadata:
+      aws:cdk:path: AnywhereStack/bastion/Resource/InstanceRole/Resource
+  bastionInstanceRoleDefaultPolicyAF88F25C:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ssmmessages:*
+              - ssm:UpdateInstanceInformation
+              - ec2messages:*
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: bastionInstanceRoleDefaultPolicyAF88F25C
+      Roles:
+        - Ref: bastionInstanceRole5FE40889
+    Metadata:
+      aws:cdk:path: AnywhereStack/bastion/Resource/InstanceRole/DefaultPolicy/Resource
+  bastionInstanceProfileE50CD38E:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: bastionInstanceRole5FE40889
+    Metadata:
+      aws:cdk:path: AnywhereStack/bastion/Resource/InstanceProfile
+  bastion2B0A2D9E:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      IamInstanceProfile:
+        Ref: bastionInstanceProfileE50CD38E
+      ImageId:
+        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
+      InstanceType: t3.nano
+      SecurityGroupIds:
+        - Fn::GetAtt:
+            - bastionInstanceSecurityGroupDB2849E6
+            - GroupId
+      SubnetId:
+        Ref: testVpcIsolatedSubnet1SubnetE8A3F2FE
+      Tags:
+        - Key: Name
+          Value: BastionHost
+      UserData:
+        Fn::Base64: "#!/bin/bash"
+    DependsOn:
+      - bastionInstanceRoleDefaultPolicyAF88F25C
+      - bastionInstanceRole5FE40889
+    Metadata:
+      aws:cdk:path: AnywhereStack/bastion/Resource/Resource
+  alb8A8B13C2:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::GetAtt:
+            - albSecurityGroup49866104
+            - GroupId
+      Subnets:
+        - Ref: testVpcPublicSubnet1Subnet03209D96
+        - Ref: testVpcPublicSubnet2SubnetAF6DE3CD
+      Type: application
+    DependsOn:
+      - testVpcPublicSubnet1DefaultRoute39318EB1
+      - testVpcPublicSubnet2DefaultRouteCF7F813D
+    Metadata:
+      aws:cdk:path: AnywhereStack/alb/Resource
+  albSecurityGroup49866104:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Automatically created Security Group for ELB AnywhereStackalbED617382
+      SecurityGroupEgress:
+        - CidrIp: 255.255.255.255/32
+          Description: Disallow all traffic
+          FromPort: 252
+          IpProtocol: icmp
+          ToPort: 86
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow from anyone on port 80
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/alb/SecurityGroup/Resource
+  tg2DCFFD86:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Ref: testVpcCB3A84F3
+    Metadata:
+      aws:cdk:path: AnywhereStack/tg/Resource
+  listener1BD7566E:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: tg2DCFFD86
+          Type: forward
+      LoadBalancerArn:
+        Ref: alb8A8B13C2
+      Port: 80
+      Protocol: HTTP
+    Metadata:
+      aws:cdk:path: AnywhereStack/listener/Resource
+  testCluster04CD0DB8:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: AnywhereCluster
+    Metadata:
+      aws:cdk:path: AnywhereStack/testCluster/Resource
+  taskExecutionRole505FC329:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMReadOnlyAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonS3ReadOnlyAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonDynamoDBReadOnlyAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaRole
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonECS_FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMFullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/ElasticLoadBalancingFullAccess
+    Metadata:
+      aws:cdk:path: AnywhereStack/taskExecutionRole/Resource
+  taskDefTaskRole8145E2CE:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: AnywhereStack/ taskDef/TaskRole/Resource
+  taskDef9DB15967:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Cpu: 1024
+          Essential: true
+          Image: nginx
+          Memory: 1024
+          Name: nginx
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 0
+              Protocol: tcp
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - taskExecutionRole505FC329
+          - Arn
+      Family: AnywhereStacktaskDefDB7B073E
+      NetworkMode: bridge
+      RequiresCompatibilities:
+        - EXTERNAL
+      TaskRoleArn:
+        Fn::GetAtt:
+          - taskDefTaskRole8145E2CE
+          - Arn
+    Metadata:
+      aws:cdk:path: AnywhereStack/ taskDef/Resource
+  testServiceEDFA21C3:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: testCluster04CD0DB8
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 0
+      EnableECSManagedTags: false
+      LaunchType: EXTERNAL
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceName: nginx
+      Tags:
+        - Key: targetGroup
+          Value:
+            Ref: tg2DCFFD86
+      TaskDefinition:
+        Ref: taskDef9DB15967
+    Metadata:
+      aws:cdk:path: AnywhereStack/testService/Service
+  ecsExternalInstanceRole33AE31E9:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ssm.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMManagedInstanceCore
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      RoleName: ecsExternalInstanceRole
+    Metadata:
+      aws:cdk:path: AnywhereStack/ecsExternalInstanceRole/Resource
+  taskFunctionServiceRole832DEA9D:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonECS_FullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/AmazonSSMFullAccess
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/ElasticLoadBalancingFullAccess
+    Metadata:
+      aws:cdk:path: AnywhereStack/taskFunction/ServiceRole/Resource
+  taskFunctionBFDAC5DE:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695S3BucketADF23332
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695S3VersionKey568B6D70
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersfa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695S3VersionKey568B6D70
+      Role:
+        Fn::GetAtt:
+          - taskFunctionServiceRole832DEA9D
+          - Arn
+      Environment:
+        Variables:
+          targetGroup:
+            Ref: tg2DCFFD86
+      Handler: task.statechange.lambda_handler
+      Runtime: python3.8
+    DependsOn:
+      - taskFunctionServiceRole832DEA9D
+    Metadata:
+      aws:cdk:path: AnywhereStack/taskFunction/Resource
+      aws:asset:path: asset.fa8a8f5a03010772a0d1a1a778c7af8ccfd34fd6a0281394aee1dec8e1d5b695
+      aws:asset:property: Code
+  changedTaskA6DC2FCA:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        detail-type:
+          - ECS Task State Change
+        source:
+          - aws.ecs
+        detail:
+          desiredStatus:
+            - STOPPED
+          lastStatus:
+            - STOPPED
+          clusterArn:
+            - Fn::GetAtt:
+                - testCluster04CD0DB8
+                - Arn
+      Name: ChangedTask
+      State: ENABLED
+      Targets:
+        - Arn:
+            Fn::GetAtt:
+              - taskFunctionBFDAC5DE
+              - Arn
+          Id: Target0
+    Metadata:
+      aws:cdk:path: AnywhereStack/changedTask/Resource
+  changedTaskAllowEventRuleAnywhereStacktaskFunction064AB20FAC884701:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - taskFunctionBFDAC5DE
+          - Arn
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+          - changedTaskA6DC2FCA
+          - Arn
+    Metadata:
+      aws:cdk:path: AnywhereStack/changedTask/AllowEventRuleAnywhereStacktaskFunction064AB20F
+  startTaskBE881440:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        detail-type:
+          - ECS Task State Change
+        source:
+          - aws.ecs
+        detail:
+          desiredStatus:
+            - RUNNING
+          lastStatus:
+            - RUNNING
+          clusterArn:
+            - Fn::GetAtt:
+                - testCluster04CD0DB8
+                - Arn
+      Name: StartTask
+      State: ENABLED
+      Targets:
+        - Arn:
+            Fn::GetAtt:
+              - taskFunctionBFDAC5DE
+              - Arn
+          Id: Target0
+    Metadata:
+      aws:cdk:path: AnywhereStack/startTask/Resource
+  startTaskAllowEventRuleAnywhereStacktaskFunction064AB20F517C6199:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - taskFunctionBFDAC5DE
+          - Arn
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::GetAtt:
+          - startTaskBE881440
+          - Arn
+    Metadata:
+      aws:cdk:path: AnywhereStack/startTask/AllowEventRuleAnywhereStacktaskFunction064AB20F
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAAE31TTXObMBD9LbnLSu10eq7tpklnPC1je3yXxZpsAImRVrgpw3/vIsCQHHLS09vV208t5XK5kl/uvqurX+g0v2+0dSCbAymdi+3FJMqpEgic2IO3wWno2D+BqkBi7T0Qu2ZoMrG1xpMLmjqHuTMbUiS0phVdlAb0SjanSne2U7IVSTgXqA/hbCC+ndDeBoKjOhcw8RPH0a1G1SnfnEXisFYEk8Yvw8kzfmL2qt6GoMNtTVznSwmGRPS7KA2c2aNJK4tMHkAHh/T25GyoYg4fCda6eW8LZKVTZSaGq/+UPCqXAf0GulqXvyto9FgHerEO/0V6H/pWfGLdKN/hZ+tphyb85cI8KdOPYsStKGzmZbOz2a2SEbcCVSmbve1DxTOxPKHYuwmNWomzFyxYEooutC6sSs+qYBNvRc2jXlcVv4kZ7ti2iTZeqBhzdp/59W25pTa/ztXQE5hBacCchubCtkXw1FtG+KhXR+XzH3BBg+PSfGSsIYUsM+P43QFcjX0HB8gNVOU5VbL5GYwe1eY4AVei93Ht/cNCdV/Fy/hj+C43QedAPCwQUPMsOedxuN3Ztq0wNgX56u/r5Tf5Va7uXj3iwgVDWILc9+d/URBlwsADAAA=
+    Metadata:
+      aws:cdk:path: AnywhereStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  bastionBastionHostIdB3A60495:
+    Description: Instance ID of the bastion host. Use this to connect via SSM Session Manager
+    Value:
+      Ref: bastion2B0A2D9E
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+

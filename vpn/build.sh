@@ -1,5 +1,5 @@
 #!/bin/sh
-export ENDPOINT=$(aws cloudformation describe-stacks --stack-name TestECSAnywhere --query "Stacks[0].Outputs[?OutputKey=='Endpoint'].OutputValue" --output text)
+export ENDPOINT=$(aws cloudformation describe-stacks --stack-name AnywhereStack --query "Stacks[0].Outputs[?OutputKey=='Endpoint'].OutputValue" --output text)
 envsubst <_config.conf >config.conf
 echo "<ca>" >>config.conf
 cat ../pki/ca.crt >>config.conf
