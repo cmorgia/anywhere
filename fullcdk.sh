@@ -1,6 +1,6 @@
 #!/bin/bash
 export VM_NAME=ECS
-export SNAP_ID=ae0ebecd-0b6a-44f2-9b86-029df520e4a6
+export SNAP_ID=d549c012-b184-4cb1-a2a4-69160acb01b9
 export AWS_PAGER=""
 
 export SERVER_CERT_ARN=$(aws acm list-certificates --query "CertificateSummaryList[?DomainName=='server'].CertificateArn" --output text)
@@ -32,9 +32,9 @@ echo "Building VPN config"
 echo "Starting VM and configure ECS Anywhere"
 prlctl exec ECS --user root "curl --proto https -o /tmp/ecs-anywhere-install.sh https://amazon-ecs-agent.s3.amazonaws.com/ecs-anywhere-install-latest.sh && bash /tmp/ecs-anywhere-install.sh --region $AWS_DEFAULT_REGION --cluster AnywhereCluster --activation-id $ACT_ID --activation-code $ACT_CODE"
 
-echo "Starting VPN"
-export RELPATH=$(python -c 'import os, sys; print(os.path.relpath(sys.argv[1],sys.argv[2]))' $(pwd) $HOME)
-prlctl exec ECS --user root openvpn --daemon openvpn --config /media/psf/Home/$RELPATH/vpn/config.conf
+# echo "Starting VPN"
+# export RELPATH=$(python -c 'import os, sys; print(os.path.relpath(sys.argv[1],sys.argv[2]))' $(pwd) $HOME)
+# prlctl exec ECS --user root openvpn --daemon openvpn --config /media/psf/Home/$RELPATH/vpn/config.conf
 
 echo "Starting ECS task"
 aws ecs update-service --cluster AnywhereCluster --service nginx --desired-count 1 --force-new-deployment

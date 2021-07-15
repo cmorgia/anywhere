@@ -6,7 +6,7 @@ import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 import { ManagedPolicy, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { Code, Function, Runtime } from '@aws-cdk/aws-lambda';
 import * as cdk from '@aws-cdk/core';
-import { CfnParameter, Tags } from '@aws-cdk/core';
+import { CfnOutput, CfnParameter, Stack, Tags } from '@aws-cdk/core';
 import { AnywhereService } from './anywhere-service';
 
 export class AnywhereStack extends cdk.Stack {
@@ -31,6 +31,11 @@ export class AnywhereStack extends cdk.Stack {
     });
 
     clientVpnEndpoint.addAuthorizationRule('onpremAuthRule',{cidr: '10.211.55.0/24'});
+
+    new CfnOutput(this, 'Endpoint', {
+      value: `v.${clientVpnEndpoint.endpointId}.prod.clientvpn.${Stack.of(this).region}.amazonaws.com`,
+      description: 'Client VPN endpoint DNS name'
+    });
 
     const bastion = new BastionHostLinux(this,'bastion',{vpc: vpc});
     
