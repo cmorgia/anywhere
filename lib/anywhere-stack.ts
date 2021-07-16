@@ -1,5 +1,5 @@
 import { BastionHostLinux, InterfaceVpcEndpointAwsService, Vpc } from '@aws-cdk/aws-ec2';
-import { CfnTaskDefinition, Cluster, ContainerImage, Ec2TaskDefinition, PropagatedTagSource } from '@aws-cdk/aws-ecs';
+import { AwsLogDriver, CfnTaskDefinition, Cluster, ContainerImage, Ec2TaskDefinition, ExternalService, ExternalTaskDefinition, PropagatedTagSource } from '@aws-cdk/aws-ecs';
 import { ApplicationListener, ApplicationLoadBalancer, ApplicationProtocol, ApplicationTargetGroup, TargetType } from '@aws-cdk/aws-elasticloadbalancingv2';
 import { Rule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
@@ -7,7 +7,6 @@ import { ManagedPolicy, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { Code, Function, Runtime } from '@aws-cdk/aws-lambda';
 import * as cdk from '@aws-cdk/core';
 import { CfnOutput, CfnParameter, Stack, Tags } from '@aws-cdk/core';
-import { AnywhereService } from './anywhere-service';
 
 export class AnywhereStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -49,7 +48,9 @@ export class AnywhereStack extends cdk.Stack {
       vpc: vpc,
       targetType: TargetType.IP
     });
+
     tg.configureHealthCheck({enabled: true});
+
     const listener = new ApplicationListener(this,'listener', {
       loadBalancer: alb,
       protocol: ApplicationProtocol.HTTP,
@@ -62,31 +63,31 @@ export class AnywhereStack extends cdk.Stack {
       assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com')
     });
 
-    [ 'AmazonAPIGatewayInvokeFullAccess', 'service-role/AmazonECSTaskExecutionRolePolicy', 'AmazonEC2ContainerRegistryReadOnly',
-      'AmazonSSMReadOnlyAccess', 'AmazonS3ReadOnlyAccess', 'AmazonDynamoDBReadOnlyAccess', 'service-role/AWSLambdaRole',
-      'AmazonECS_FullAccess', 'AmazonSSMFullAccess', 'ElasticLoadBalancingFullAccess'
+    [ 'service-role/AmazonECSTaskExecutionRolePolicy', 'AmazonEC2ContainerRegistryReadOnly',
+      'AmazonSSMReadOnlyAccess', 'AmazonS3ReadOnlyAccess', 'service-role/AWSLambdaRole',
+      'AmazonECS_FullAccess', 'AmazonSSMFullAccess', 'ElasticLoadBalancingFullAccess', 'CloudWatchLogsFullAccess'
     ].forEach(policy =>
       taskExecutionRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName(policy))
     );
 
-    const taskDef = new Ec2TaskDefinition(this,'taskDef',{
+    const taskDef = new ExternalTaskDefinition(this,'taskDef',{
       executionRole: taskExecutionRole
     });
     taskDef.addContainer('nginx',{
       image: ContainerImage.fromRegistry('nginx'),
-      memoryLimitMiB: 1024,
-      cpu: 1024,
-      portMappings: [ { containerPort: 80}]
+      memoryLimitMiB: 100,
+      cpu: 100,
+      portMappings: [ { containerPort: 80}],
+      logging: new AwsLogDriver({ streamPrefix: Stack.of(this).stackName })
     });
     
-    (taskDef.node.defaultChild as CfnTaskDefinition).addPropertyOverride('RequiresCompatibilities',['EXTERNAL']);
-
     [ 'service-role/AmazonECSTaskExecutionRolePolicy', 'AmazonS3ReadOnlyAccess', 
       'AmazonDynamoDBReadOnlyAccess', 'service-role/AWSLambdaRole'
     ].forEach(policy =>
       taskDef.taskRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName(policy))
     );
-    const service = new AnywhereService(this, 'testService', {
+    
+    const service = new ExternalService(this, 'testService', {
       cluster: cluster,
       taskDefinition: taskDef,
       serviceName: 'nginx',
@@ -100,7 +101,8 @@ export class AnywhereStack extends cdk.Stack {
       assumedBy: new ServicePrincipal('ssm.amazonaws.com'),
       managedPolicies: [ 
         ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
-        ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEC2ContainerServiceforEC2Role')
+        ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEC2ContainerServiceforEC2Role'),
+        ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess')
       ]
     });
 
